@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Happy New Year – Alwyn</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: radial-gradient(circle at bottom, #050018, #000);
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+
+/* Text container */
+.text {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    top: 38%;
+    color: white;
+    z-index: 10;
+    padding: 0 10px;
+}
+
+h1 {
+    font-size: clamp(32px, 7vw, 72px);
+    margin: 0;
+    animation: glow 2s ease-in-out infinite alternate;
+}
+
+h2 {
+    font-size: clamp(18px, 3.5vw, 34px);
+    font-weight: 300;
+    margin-top: 10px;
+    opacity: 0.95;
+}
+
+.signature {
+    margin-top: 25px;
+    font-size: clamp(16px, 3vw, 22px);
+    white-space: nowrap;
+    overflow: hidden;
+    border-right: 2px solid white;
+    width: 0;
+    animation: typing 4s steps(20) forwards, blink 0.8s infinite;
+}
+
+/* Animations */
+@keyframes glow {
+    from { text-shadow: 0 0 10px #fff, 0 0 20px #ff00ff; }
+    to   { text-shadow: 0 0 20px #00ffff, 0 0 40px #ff00ff; }
+}
+
+@keyframes typing {
+    to { width: 220px; }
+}
+
+@keyframes blink {
+    50% { border-color: transparent; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- Background music -->
+<audio autoplay loop>
+    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_2f8c9e2c6f.mp3" type="audio/mpeg">
+</audio>
+
+<canvas id="canvas"></canvas>
+
+<div class="text">
+    <h1>🎆 Happy New Year 🎆</h1>
+    <h2>Best Wishes to Everyone</h2>
+    <div class="signature">— by Alwyn</div>
+</div>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+let w, h;
+function resize() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+}
+window.addEventListener("resize", resize);
+resize();
+
+/* Utilities */
+function rand(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
+/* Rocket + particle system */
+class Particle {
+    constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.vx = rand(-6, 6);
+        this.vy = rand(-6, 6);
+        this.life = 80;
+        this.color = color;
+        this.size = rand(1.5, 3);
+    }
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += 0.06;
+        this.life--;
+    }
+    draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+    }
+}
+
+class Rocket {
+    constructor() {
+        this.x = rand(100, w - 100);
+        this.y = h;
+        this.vy = rand(-10, -14);
+        this.exploded = false;
+    }
+    update() {
+        this.y += this.vy;
+        if (this.y < rand(150, h / 2)) {
+            this.exploded = true;
+            explode(this.x, this.y);
+        }
+    }
+    draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = "white";
+        ctx.fill();
+    }
+}
+
+let rockets = [];
+let particles = [];
+
+function explode(x, y) {
+    const colors = ["#ff0043", "#14fc56", "#1e90ff", "#ffd700", "#ff69b4", "#00ffff"];
+    for (let i = 0; i < 120; i++) {
+        particles.push(
+            new Particle(x, y, colors[Math.floor(Math.random() * colors.length)])
+        );
+    }
+}
+
+function animate() {
+    ctx.fillStyle = "rgba(0,0,0,0.25)";
+    ctx.fillRect(0, 0, w, h);
+
+    if (Math.random() < 0.05) rockets.push(new Rocket());
+
+    rockets = rockets.filter(r => !r.exploded);
+    rockets.forEach(r => {
+        r.update();
+        r.draw();
+    });
+
+    particles = particles.filter(p => p.life > 0);
+    particles.forEach(p => {
+        p.update();
+        p.draw();
+    });
+
+    requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+
+</body>
+</html>
